@@ -1,1 +1,44 @@
-.github/workflows/build-apk.yml
+name: Build NosDeCorda APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Teste do ambiente
+        run: |
+          java -version
+          echo "GitHub Actions funcionando!"
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar Android SDK
+        run: |
+          yes | sdkmanager "platform-tools"
+          yes | sdkmanager "platforms;android-35"
+          yes | sdkmanager "build-tools;35.0.0"
+
+      - name: Verificar ambiente
+        run: |
+          echo "Android SDK instalado"
+          adb --version
+
+      - name: Finalizar
+        run: |
+          echo "Ambiente preparado para compilar o APK."
