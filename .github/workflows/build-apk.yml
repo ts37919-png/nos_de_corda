@@ -3,144 +3,137 @@ name: Build NosDeCorda APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar código
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Preparar Java
+      - name: Java 17
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Preparar Android SDK
+      - name: Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          packages: platform-tools platforms;android-35 build-tools;35.0.0
 
-      - name: Criar projeto Android
+      - name: Create Android project
         shell: bash
         run: |
-          mkdir -p app/src/main/java/com/nosdecorda app/src/main/assets
-          cat > settings.gradle <<'GRADLE'
-pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
-rootProject.name='NosDeCorda'
-include ':app'
-GRADLE
-
-          cat > build.gradle <<'GRADLE'
-plugins {
-    id 'com.android.application' version '8.9.2' apply false
-}
-GRADLE
-
-          cat > app/build.gradle <<'GRADLE'
-plugins { id 'com.android.application' }
-
-android {
-    namespace 'com.nosdecorda'
-    compileSdk 35
-
-    defaultConfig {
-        applicationId 'com.nosdecorda'
-        minSdk 24
-        targetSdk 35
-        versionCode 1
-        versionName '1.0'
-    }
-}
-GRADLE
-
-          cat > app/src/main/AndroidManifest.xml <<'XML'
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET" />
-    <application android:theme="@style/AppTheme" android:label="Nós de Corda" android:usesCleartextTraffic="false">
-        <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-</manifest>
-XML
-
+          set -e
+          mkdir -p app/src/main/java/com/nosdecorda
           mkdir -p app/src/main/res/values
+          cat > settings.gradle <<'GRADLE'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          
+          rootProject.name = 'NosDeCorda'
+          include ':app'
+          GRADLE
+          
+          cat > build.gradle <<'GRADLE'
+          plugins {
+              id 'com.android.application' version '8.9.2' apply false
+          }
+          GRADLE
+          
+          cat > app/build.gradle <<'GRADLE'
+          plugins {
+              id 'com.android.application'
+          }
+          
+          android {
+              namespace 'com.nosdecorda'
+              compileSdk 35
+          
+              defaultConfig {
+                  applicationId 'com.nosdecorda'
+                  minSdk 24
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+          GRADLE
+          
+          cat > app/src/main/AndroidManifest.xml <<'XML'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application android:theme="@style/AppTheme" android:label="Nós de Corda">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          XML
+          
           cat > app/src/main/res/values/styles.xml <<'XML'
-<resources>
-    <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#C96F3B</item>
-        <item name="android:navigationBarColor">#101B18</item>
-        <item name="android:statusBarColor">#101B18</item>
-        <item name="android:windowLightStatusBar">false</item>
-    </style>
-</resources>
-XML
-
+          <resources>
+              <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#C96F3B</item>
+              </style>
+          </resources>
+          XML
+          
           cat > app/src/main/java/com/nosdecorda/MainActivity.java <<'JAVA'
-package com.nosdecorda;
+          package com.nosdecorda;
+          
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.graphics.Color;
+          import android.view.Gravity;
+          import android.widget.TextView;
+          
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle state) {
+                  super.onCreate(state);
+                  TextView t = new TextView(this);
+                  t.setText("🪢\nNÓS DE CORDA\n\nAPK criado com sucesso!\n\nLais de Guia\nCabrestante\nDireito\nEm Oito\nEscota\nTensão");
+                  t.setTextSize(24);
+                  t.setGravity(Gravity.CENTER);
+                  t.setTextColor(Color.rgb(16,32,28));
+                  t.setPadding(30,30,30,30);
+                  setContentView(t);
+              }
+          }
+          JAVA
 
-import android.app.Activity;
-import android.os.Bundle;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-
-public class MainActivity extends Activity {
-    @Override public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        WebView web = new WebView(this);
-        web.setWebViewClient(new WebViewClient());
-        WebSettings s = web.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setLoadsImagesAutomatically(true);
-        setContentView(web);
-        web.loadUrl("file:///android_asset/index.html");
-    }
-}
-JAVA
-
-          cat > app/src/main/assets/index.html <<'HTML'
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Nós de Corda</title>
-<style>
-:root{--ink:#10201c;--deep:#17352d;--paper:#f3ead8;--sand:#e4d4b8;--rust:#c96f3b;--gold:#d5a34b;--white:#fffaf0;--muted:#6e756d}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif}header{padding:28px 20px 24px;background:linear-gradient(145deg,#10201c,#23493c);color:white;border-bottom-left-radius:28px;border-bottom-right-radius:28px}.eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.72}.hero{font-size:31px;line-height:1.02;font-weight:900;margin:8px 0}.sub{font-size:14px;line-height:1.45;opacity:.82;max-width:330px}.tag{display:inline-block;margin-top:15px;padding:9px 12px;border:1px solid #ffffff33;border-radius:999px;font-size:12px;background:#ffffff12}.wrap{padding:18px}.search{width:100%;border:0;border-radius:16px;padding:15px 16px;background:#fffdf7;box-shadow:0 6px 20px #432d1612;font-size:15px;outline:none}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.card{background:#fffdf7;border-radius:20px;overflow:hidden;box-shadow:0 7px 22px #432d1614;border:1px solid #d7c7a9}.card img{width:100%;height:145px;object-fit:cover;background:#d7c7a9}.card .body{padding:12px}.pill{font-size:10px;color:var(--rust);font-weight:800;text-transform:uppercase;letter-spacing:1px}.name{font-size:16px;font-weight:850;margin-top:4px}.hint{font-size:12px;color:var(--muted);margin-top:5px}.detail{display:none}.back{border:0;background:#ffffff18;color:white;padding:10px 13px;border-radius:12px;font-size:14px}.detail img{width:100%;height:280px;object-fit:cover;border-radius:22px;margin-top:16px}.steps{background:#fffdf7;border-radius:20px;padding:16px;margin-top:16px}.step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #e6dac5}.step:last-child{border:0}.num{min-width:30px;height:30px;border-radius:50%;background:var(--rust);color:white;display:grid;place-items:center;font-weight:800}.tip{margin-top:14px;padding:14px;border-left:4px solid var(--gold);background:#eadfc9;border-radius:0 14px 14px 0;font-size:13px}.backlink{margin-top:14px;color:var(--rust);font-weight:800}.footer{padding:25px 0 8px;text-align:center;color:var(--muted);font-size:11px}@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}
-</style></head><body><section id="home"><header><div class="eyebrow">Ferramenta de bolso</div><div class="hero">AMARRE. PRENDA. RESOLVA.</div><div class="sub">O nó certo, na hora certa. Aprenda nós úteis para casa, trabalho, campo e aventura.</div><div class="tag">🪢 Nós práticos • Passo a passo</div></header><main class="wrap"><input id="search" class="search" placeholder="🔎 Procurar um nó..."/><div id="grid" class="grid"></div><div class="footer">Imagens: Wikimedia Commons • Licenças indicadas nas fontes</div></main></section>
-<section id="detail"><header><button class="back" onclick="goHome()">← Voltar aos nós</button><div id="dTitle" class="hero" style="margin-top:18px"></div><div id="dSub" class="sub"></div></header><main class="wrap"><img id="dImg"/><div id="dSteps" class="steps"></div><div id="dTip" class="tip"></div><div class="backlink" onclick="goHome()">← Ver outros nós</div></main></section>
-<script>
-const nodes=[
-{name:'Nó de Lais de Guia',cat:'Laço fixo',img:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bowline%20Knot.jpg',desc:'Forma uma alça fixa que não corre quando tensionada.',steps:['Faça uma pequena alça no cabo, deixando a ponta de trabalho livre.','Passe a ponta por dentro da alça.','Contorne a parte fixa da corda e volte com a ponta pela alça.','Ajuste puxando a parte fixa e a ponta até o nó ficar firme.'],tip:'Muito usado para criar uma alça fixa na ponta da corda.'},
-{name:'Nó de Cabrestante',cat:'Fixação',img:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Macrame%20clove%20hitch%20vertical.jpg',desc:'Nó de fixação para prender a corda em um poste ou apoio.',steps:['Passe a corda ao redor do apoio.','Cruze a corda sobre a parte fixa.','Dê uma segunda volta formando o cruzamento.','Passe a ponta por baixo da última volta e aperte.'],tip:'Também é conhecido em inglês como clove hitch.'},
-{name:'Nó Direito',cat:'União',img:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Square%20knot.jpg',desc:'Une duas pontas de corda de diâmetro semelhante.',steps:['Cruze a ponta direita sobre a esquerda.','Passe a ponta por baixo e puxe.','Agora cruze a ponta esquerda sobre a direita.','Passe por baixo e aperte o conjunto.'],tip:'Confira se as duas metades ficaram simétricas antes de carregar.'},
-{name:'Nó em Oito',cat:'Segurança',img:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Figure%20eight%20knot.JPG',desc:'Nó de segurança fácil de reconhecer e desfazer.',steps:['Forme uma volta com a corda.','Passe a ponta por trás da parte fixa.','Volte a ponta pela primeira volta.','Puxe as duas partes para acomodar o nó.'],tip:'É uma excelente referência visual: o desenho final lembra o número 8.'},
-{name:'Nó de Escota',cat:'União',img:'https://commons.wikimedia.org/wiki/Special:Redirect/file/D.%20Sheet%20Bend%20(1).jpg',desc:'Une duas cordas, inclusive quando têm espessuras diferentes.',steps:['Forme uma alça com a corda mais grossa.','Passe a ponta da outra corda pela alça.','Dê a volta por trás da alça.','Passe a ponta por baixo de si mesma e aperte.'],tip:'É usado para unir cordas de diâmetros diferentes.'},
-{name:'Nó de Tensão',cat:'Ajustável',img:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Taut_Line_Hitch_HowTo.jpg',desc:'Permite ajustar a tensão de uma corda mantendo o nó no lugar.',steps:['Passe a corda ao redor do ponto de ancoragem.','Faça duas voltas por dentro da alça.','Faça uma volta adicional por fora.','Aperte e deslize o nó para ajustar a tensão.'],tip:'Útil para esticar cordas e linhas que precisam de ajuste.'}
-];
-const grid=document.getElementById('grid');function render(list){grid.innerHTML=list.map((n,i)=>`<article class="card" onclick="openNode(${i})"><img src="${n.img}" loading="lazy"><div class="body"><div class="pill">${n.cat}</div><div class="name">${n.name}</div><div class="hint">Toque para aprender →</div></div></article>`).join('')};render(nodes);
-document.getElementById('search').oninput=e=>{const q=e.target.value.toLowerCase();render(nodes.filter(n=>n.name.toLowerCase().includes(q)||n.cat.toLowerCase().includes(q)))};
-function openNode(i){const n=nodes[i];document.getElementById('home').style.display='none';document.getElementById('detail').style.display='block';document.getElementById('dTitle').textContent=n.name;document.getElementById('dSub').textContent=n.desc;document.getElementById('dImg').src=n.img;document.getElementById('dSteps').innerHTML='<b>Como fazer</b>'+n.steps.map((s,j)=>`<div class="step"><div class="num">${j+1}</div><div>${s}</div></div>`).join('');document.getElementById('dTip').innerHTML='<b>Dica prática</b><br>'+n.tip;window.scrollTo(0,0)}function goHome(){document.getElementById('detail').style.display='none';document.getElementById('home').style.display='block';window.scrollTo(0,0)}
-</script></body></html>
-HTML
-
-      - name: Configurar Gradle
+      - name: Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.11.1'
 
-      - name: Compilar APK
+      - name: Build APK
         run: gradle --no-daemon assembleDebug
 
-      - name: Publicar APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: NosDeCorda-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found:error
+          if-no-files-found: error
