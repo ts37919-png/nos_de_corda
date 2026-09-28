@@ -20,25 +20,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Teste do ambiente
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Instalar componentes Android
+        run: |
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
+
+      - name: Verificar Android
         run: |
           java -version
-          echo "GitHub Actions funcionando!"
-
-      - name: Preparar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar Android SDK
-        run: |
-          yes | sdkmanager "platform-tools"
-          yes | sdkmanager "platforms;android-35"
-          yes | sdkmanager "build-tools;35.0.0"
-
-      - name: Verificar ambiente
-        run: |
-          echo "Android SDK instalado"
           adb --version
+          sdkmanager --list_installed
 
       - name: Finalizar
         run: |
-          echo "Ambiente preparado para compilar o APK."
+          echo "Android SDK preparado com sucesso!"
